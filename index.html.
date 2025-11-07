@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Contact Mini App</title>
+    <!-- Tailwind CSS for modern responsive layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styling for Neon/Glow Effect */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0D1117; /* Deep Black Background (GitHub Dark Mode) */
+            color: #E2E8F0; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* Custom Neon Green Glow Effect */
+        .neon-glow-green {
+            box-shadow: 0 0 5px #39FF14, 0 0 15px #39FF14, 0 0 30px rgba(57, 255, 20, 0.4);
+            border-color: #39FF14;
+        }
+
+        .neon-text-green {
+            color: #39FF14;
+            text-shadow: 0 0 7px rgba(57, 255, 20, 0.7);
+        }
+
+        /* Custom Neon Purple Glow Effect */
+        .neon-glow-purple {
+            box-shadow: 0 0 5px #7E22CE, 0 0 15px #7E22CE, 0 0 30px rgba(126, 34, 206, 0.4);
+            border-color: #7E22CE;
+        }
+
+        /* Input/Textarea Focus Glow */
+        #message-input:focus, .neon-input {
+            outline: none;
+            box-shadow: 0 0 5px #39FF14, 0 0 10px #39FF14;
+            border-color: #39FF14 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+
+    <div id="app-container" class="w-full max-w-sm p-8 space-y-7 bg-[#161B22] rounded-2xl shadow-xl transition duration-300 neon-glow-green">
+        
+        <!-- Header -->
+        <h1 class="text-4xl font-extrabold text-center neon-text-green">
+            Contact Me
+        </h1>
+        <p class="text-center text-gray-400">
+            Send your message directly to my bot. Your account username will be attached.
+        </p>
+
+        <!-- Message Input Field -->
+        <div class="space-y-2">
+            <label for="message-input" class="block text-sm font-medium text-gray-300">
+                Your Message:
+            </label>
+            <textarea 
+                id="message-input" 
+                rows="6" 
+                placeholder="Type your message here..." 
+                class="w-full p-4 bg-[#0D1117] border border-gray-700 rounded-xl transition duration-150 text-gray-50 placeholder-gray-600 resize-none"
+            ></textarea>
+        </div>
+
+        <!-- Send Button (Neon Green) -->
+        <button 
+            id="send-button" 
+            class="w-full flex items-center justify-center p-4 font-bold text-lg text-black bg-[#39FF14] rounded-xl transition duration-200 transform hover:scale-[1.02] focus:outline-none neon-glow-green shadow-xl shadow-[#39FF14]/30"
+        >
+            <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            Send Message
+        </button>
+
+        <!-- Username Section (Neon Purple) -->
+        <div class="pt-6 border-t border-gray-800">
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+                My Telegram Username:
+            </label>
+            <div id="username-container" class="flex items-center justify-between p-3 bg-[#0D1117] border border-gray-700 rounded-xl neon-glow-purple">
+                <span id="username-display" class="font-mono text-base text-[#C084FC] select-all">@i7000h</span>
+                <button 
+                    id="copy-button" 
+                    class="ml-3 p-2 text-sm text-white bg-[#7E22CE] rounded-full hover:bg-[#9333EA] transition duration-150 transform hover:scale-105"
+                    aria-label="Copy Username"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5v2m0-2h8m-8 0H6M14 5v2m-2-2h4m-4 0v14"></path></svg>
+                </button>
+            </div>
+            <!-- Success Message (Visible after copy) -->
+            <p id="copy-success" class="mt-2 text-center text-sm text-[#39FF14] opacity-0 transition-opacity duration-300">
+                Username Copied!
+            </p>
+        </div>
+
+        <!-- Status Message Box -->
+        <div id="status-message" class="text-center p-3 rounded-lg hidden"></div>
+
+    </div>
+
+    <script>
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const copyButton = document.getElementById('copy-button');
+        const copySuccess = document.getElementById('copy-success');
+        const statusMessage = document.getElementById('status-message');
+
+        const USERNAME = '@i7000h';
+
+        // 1. Function to display status messages (replacement for alert)
+        function showStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'text-center p-3 rounded-lg block';
+            if (isError) {
+                // Neon Red for Error
+                statusMessage.classList.add('bg-red-900/40', 'text-red-300', 'shadow-red-500/30', 'shadow-md');
+            } else {
+                // Neon Green for Success
+                statusMessage.classList.add('bg-green-900/40', 'text-[#39FF14]', 'shadow-[#39FF14]/30', 'shadow-md');
+            }
+            statusMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusMessage.classList.add('hidden');
+            }, 3000);
+        }
+
+        // 2. Send Message Function (Simulation)
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+
+            if (!message) {
+                showStatus('Please write a message before sending.', true);
+                return;
+            }
+
+            // --- Telegram Mini App Integration ---
+            
+            // This part is crucial for a real Telegram Mini App.
+            if (window.Telegram && window.Telegram.WebApp) {
+                // Use WebApp.sendData to send the message back to your bot.
+                // Your bot receives this data and then forwards the message.
+                window.Telegram.WebApp.sendData(JSON.stringify({
+                    type: "contact_message",
+                    text: message
+                }));
+                
+                // It's common practice to close the Mini App after sending a message.
+                window.Telegram.WebApp.close(); 
+            } else {
+                // Simulation for testing outside Telegram environment
+                console.log("Mini App Simulation: Message Sent:", message);
+                showStatus('Message sent successfully! (Simulated).', false);
+                messageInput.value = '';
+            }
+        });
+
+        // 3. Copy Username Function
+        copyButton.addEventListener('click', () => {
+            const el = document.createElement('textarea');
+            el.value = USERNAME;
+            document.body.appendChild(el);
+            el.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    copySuccess.classList.remove('opacity-0');
+                    copySuccess.classList.add('opacity-100');
+                    setTimeout(() => {
+                        copySuccess.classList.remove('opacity-100');
+                        copySuccess.classList.add('opacity-0');
+                    }, 2000);
+                } else {
+                    showStatus('Copy failed. Please copy the username manually.', true);
+                }
+            } catch (err) {
+                showStatus('Copy failed. Please copy the username manually.', true);
+            }
+            document.body.removeChild(el);
+        });
+
+        // 4. Telegram WebApp Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const WebApp = window.Telegram.WebApp;
+                WebApp.ready();
+                // Set the header/background colors to match the neon theme
+                WebApp.setHeaderColor(WebApp.themeParams.button_color || '#161B22');
+                WebApp.setBackgroundColor(WebApp.themeParams.bg_color || '#0D1117');
+                WebApp.MainButton.hide(); // Hide the default main button if it exists
+            }
+        });
+    </script>
+</body>
+</html>
+
